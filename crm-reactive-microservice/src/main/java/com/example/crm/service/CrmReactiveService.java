@@ -19,8 +19,10 @@ public class CrmReactiveService {
 	private final ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate;
 	private final ObjectMapper objectMapper;
 	private final ReactiveWebSocketService reactiveWebSocketService;
-	
-	public CrmReactiveService(CustomerReactiveRepository customerReactiveRepository, ObjectMapper objectMapper, ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate, ReactiveWebSocketService reactiveWebSocketService) {
+
+	public CrmReactiveService(CustomerReactiveRepository customerReactiveRepository, ObjectMapper objectMapper,
+			ReactiveKafkaProducerTemplate<String, String> reactiveKafkaProducerTemplate,
+			ReactiveWebSocketService reactiveWebSocketService) {
 		this.customerReactiveRepository = customerReactiveRepository;
 		this.reactiveKafkaProducerTemplate = reactiveKafkaProducerTemplate;
 		this.objectMapper = objectMapper;
@@ -37,48 +39,44 @@ public class CrmReactiveService {
 
 	public Mono<Customer> acquire(Customer customer) {
 		return customerReactiveRepository.insert(customer)
-				                         .doOnSuccess(_ -> sendCustomerAcquiredEvent(customer.getEmail()));
+				.doOnSuccess(_ -> sendCustomerAcquiredEvent(customer.getEmail()));
 	}
-
 
 	public Mono<Customer> update(String identity, Customer customer) {
 		return customerReactiveRepository.save(customer);
 	}
 
 	public Mono<Customer> release(String identity) {
-		return customerReactiveRepository.findById(identity)
-				                         .doOnSuccess( customer -> {
-				                        	 customerReactiveRepository.deleteById(identity)
-				                        	                           .doOnSuccess( _ -> sendCustomerReleasedEvent(customer.getEmail()))
-				                        	                           .subscribe( _ -> System.out.println("Customer is removed!"));
-				                         });
+		return customerReactiveRepository.findById(identity).doOnSuccess(customer -> {
+			customerReactiveRepository.deleteById(identity)
+					.doOnSuccess(_ -> sendCustomerReleasedEvent(customer.getEmail()))
+					.subscribe(_ -> System.out.println("Customer is removed!"));
+		});
 	}
 
 	private void sendCustomerAcquiredEvent(String email) {
 		try {
 			var event = new CustomerAcquiredEvent(email);
 			var eventAsJson = objectMapper.writeValueAsString(event);
-			reactiveKafkaProducerTemplate.send("crm-events",eventAsJson)
-			                             .doOnError(_ -> {})
-			                             .doOnSuccess( _ -> reactiveWebSocketService.reactiveSendMessage(eventAsJson).subscribe())
-			                             .subscribe( _ -> {
-			                            	 System.out.println("The event has been sent successfully to the Kafka server.");
-			                             });
-		}catch (Exception e) {
+			reactiveKafkaProducerTemplate.send("crm-events", eventAsJson).doOnError(_ -> {
+			}).doOnSuccess(_ -> reactiveWebSocketService.reactiveSendMessage(eventAsJson).subscribe()).subscribe(_ -> {
+				System.out.println("The event has been sent successfully to the Kafka server.");
+			});
+		} catch (Exception e) {
 			System.out.println("An error has occured: %s".formatted(e.getMessage()));
 		}
 	}
-	
+
 	private void sendCustomerReleasedEvent(String email) {
 		try {
 			var event = new CustomerReleasedEvent(email);
 			var eventAsJson = objectMapper.writeValueAsString(event);
-			reactiveKafkaProducerTemplate.send("crm-events",eventAsJson)
-			.doOnSuccess( _ -> reactiveWebSocketService.reactiveSendMessage(eventAsJson).subscribe())
-			.subscribe( _ -> {
-				System.out.println("The event has been sent successfully to the Kafka server.");
-			});
-		}catch (Exception e) {
+			reactiveKafkaProducerTemplate.send("crm-events", eventAsJson)
+					.doOnSuccess(_ -> reactiveWebSocketService.reactiveSendMessage(eventAsJson).subscribe())
+					.subscribe(_ -> {
+						System.out.println("The event has been sent successfully to the Kafka server.");
+					});
+		} catch (Exception e) {
 			System.out.println("An error has occured: %s".formatted(e.getMessage()));
 		}
 	}

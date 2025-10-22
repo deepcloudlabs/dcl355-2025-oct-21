@@ -18,9 +18,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class HrEventWebSocketPublisherService implements WebSocketHandler {
-	private final Map<String,WebSocketSession> sessions = new ConcurrentHashMap<>();
+	private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 	private final ObjectMapper objectMapper;
-	
+
 	public HrEventWebSocketPublisherService(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
@@ -32,12 +32,14 @@ public class HrEventWebSocketPublisherService implements WebSocketHandler {
 
 	@Override
 	public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
+
 	}
 
 	@Override
 	public void handleTransportError(WebSocketSession session, Throwable e) throws Exception {
 		sessions.remove(session.getId());
-		System.err.println("An error has occured while communicating with the session (%s): %s".formatted(session.getId(),e.getMessage()));
+		System.err.println("An error has occured while communicating with the session (%s): %s"
+				.formatted(session.getId(), e.getMessage()));
 	}
 
 	@Override
@@ -49,17 +51,18 @@ public class HrEventWebSocketPublisherService implements WebSocketHandler {
 	public boolean supportsPartialMessages() {
 		return false;
 	}
-	
+
 	@EventListener
 	public void handleHrEvent(HrEvent event) {
 		try {
 			var eventAsJson = objectMapper.writeValueAsString(event);
 			var message = new TextMessage(eventAsJson);
-			sessions.forEach((_,session) -> {
+			sessions.forEach((_, session) -> {
 				try {
 					session.sendMessage(message);
 				} catch (IOException e) {
-					System.err.println("An error has occured while sending the hr event to ws client: %s".formatted(e.getMessage()));
+					System.err.println("An error has occured while sending the hr event to ws client: %s"
+							.formatted(e.getMessage()));
 				}
 			});
 		} catch (JsonProcessingException e) {

@@ -17,7 +17,7 @@ public class KafkaErrorHandlingConfig {
 	@Bean
 	DefaultErrorHandler defaultErrorHandler(KafkaTemplate<String, String> template) {
 		DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(template,
-				(record, ex) -> new TopicPartition(record.topic() + ".DLT", record.partition()));
+				(record, _) -> new TopicPartition(record.topic() + ".DLT", record.partition()));
 
 		var backoff = new ExponentialBackOff();
 		backoff.setInitialInterval(500);

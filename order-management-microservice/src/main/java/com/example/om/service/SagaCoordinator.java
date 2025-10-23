@@ -89,10 +89,28 @@ public class SagaCoordinator {
 	@Transactional
 	@KafkaListener(topics = "order-inventory-instock-response")
 	public void listenInventoryInStockResponseMessage(String inventoryResponseMesssage) throws Exception {
-		// reflection
+		var responseMessage = objectMapper.readValue(inventoryResponseMesssage, InventoryResponseMessage.class);
+
+		if (responseMessage.inventoryStatus() == InventoryStatus.NOT_IN_STOCK) {
+			var order = orderRepository.findById(responseMessage.orderId()).orElseThrow();
+			switch (order.getStatus()) {
+			case PAYMENT -> {
+				cancelPayment(order);
+				cancelOrder(order.getOrderId());
+			}
+			case CREATED -> {
+			}
+			case NOT_IN_STOCK -> {
+				cancelPayment(order);
+				cancelInventory(order.getOrderId());
+				cancelOrder(order.getOrderId());
+			}
+			}
+		}
 	}
 
 	@Compansation(action = OrderAction.VALIDATE_PAYMENT)
+	@Transactional
 	public void cancelPayment(Order order) {
 		var cancelPayment = new CancelPayment(order.getCustomerId(), order.getOrderId(), order.getTotal());
 		try {
@@ -103,6 +121,7 @@ public class SagaCoordinator {
 	}
 
 	@Compansation(action = OrderAction.DROP_FROM_INVENTORY)
+	@Transactional
 	public void cancelInventory(long orderId) {
 		orderRepository.findById(orderId).ifPresent(order -> {
 			List<InventoryItem> items = order.getItems().stream()
@@ -116,6 +135,7 @@ public class SagaCoordinator {
 		});
 	}
 
+	@Transactional
 	@Compansation(action = OrderAction.CREATE_ORDER)
 	public void cancelOrder(long orderId) {
 		Consumer<Order> changeOrderStatusToCanceled = order -> order.setStatus(OrderStatus.CANCELED);

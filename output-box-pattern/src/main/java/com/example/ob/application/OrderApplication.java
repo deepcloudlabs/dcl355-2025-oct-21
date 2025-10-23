@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import org.apache.kafka.common.Uuid;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.ob.application.event.OrderAcceptedEvent;
@@ -30,6 +31,7 @@ public class OrderApplication {
 	@Transactional
 	public void accept(OrderEntity order) throws JsonProcessingException {
 			orderEntityRepository.save(order);
+			//orderEntityRepository.flush();
 			var orderAcceptedEvent = new OrderAcceptedEvent(Uuid.randomUuid().toString(),"ORDER_ACCEPTED",order);
 			outboxEventRepository.save(createOutboxEvent(orderAcceptedEvent));
 	}

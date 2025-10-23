@@ -105,6 +105,7 @@ public class SagaCoordinator {
 				cancelInventory(order.getOrderId());
 				cancelOrder(order.getOrderId());
 			}
+			default -> throw new IllegalArgumentException("Unexpected value: " + order.getStatus());
 			}
 		}
 	}

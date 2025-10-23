@@ -4,7 +4,6 @@ import java.time.Instant;
 
 import org.apache.kafka.common.Uuid;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.ob.application.event.OrderAcceptedEvent;

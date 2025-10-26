@@ -21,7 +21,6 @@ The top-level directories are independent Spring Boot apps or focused labs. Open
 - **hr-core-subdomain**, **hr-microservice**, **hr-consumer**, **hr-async-consumer** — HR domain services with synchronous and asynchronous consumers.  
 - **lottery-microservice**, **lottery-consumer** — Simple producer/consumer reference for messaging.  
 - **study-… / world-… / spring-boot-…** — Focused labs for Actuator, JFR, JMX, JDBC/JPA/Template, WebClient, and reactive basics.  
-- **Exercises** — Hands-on tasks used during the course.
 
 > Naming note: some folders intentionally isolate one pattern (e.g., `dead-letter-pattern`) while others compose multiple building blocks (e.g., CRM/CQRS stack).
 
@@ -72,12 +71,6 @@ Check each service’s `application.yml` for ports, profiles, and connection set
 **Security.** `keycloak-jwt-spring-boot` and `security-card-microservice` show OIDC login, JWT validation, and token forwarding between services.
 
 **Observability.** The `study-*` projects illustrate Spring Boot Actuator endpoints, JFR profiling hooks, and JMX, helping you instrument services for operations.
-
----
-
-## Exercises
-
-Open the `Exercises` directory for the labs used in class. Each one references a target sample and a goal (e.g., add a circuit breaker to a slow route, wire an outbox publisher into a transactional flow, configure a DLT consumer, protect an endpoint with JWT, or expose health and metrics).
 
 ---
 

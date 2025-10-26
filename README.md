@@ -1,7 +1,5 @@
 # DCL-355: MicroServices Patterns with Examples in Spring Boot
 
-# DCL-355 — Microservices Patterns with Spring Boot  
-
 This repository contains the code, exercises, and reference projects from the **DCL-355: Microservices Patterns with Examples in Spring Boot** training. It demonstrates service discovery, centralized configuration, reactive gatewaying, transactional messaging (outbox, DLT), data consistency (CQRS), resiliency (Resilience4j), security (Keycloak/OIDC), observability (Actuator/JFR/JMX), and deployment practices using Spring Boot and Spring Cloud. 
 
 ---
